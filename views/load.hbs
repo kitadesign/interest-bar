@@ -1,0 +1,48 @@
+( function ( w ) {
+	var name = '{{ns}}';
+	w[ name ] = w[ name ] || {};
+
+	var ns = w[ name ];
+	ns.root = '{{root}}';
+
+	( function () {
+		if ( ns.$ ) return;
+		var module     = {};
+		module.exports = {};
+		{{{loadlibs 'jquery-1.11.1.min'}}}
+		ns.jQuery = ns.$ = module.exports;
+	} )();
+
+	( function () {
+		if ( ns.io ) return;
+		var module  = {};
+		var exports = module.exports = {};
+		{{{loadmodule 'socket.io-client/socket.io'}}}
+		ns.io = module.exports;
+	} )();
+
+	ns.option   = ns.option || {};
+	ns.none     = function () {};
+	ns.window   = w;
+	ns.document = w.document;
+	ns.location = w.location;
+	ns.storage  = w.sessionStorage;
+	ns.url      = location.href.split( '#' )[ 0 ];
+
+	var $ = jQuery = ns.$;
+	var io = ns.io;
+
+	{{{load 'ib' 'IB'}}}
+
+	var getSize = function () {
+		ns.width  = $( ns.window ).width()  || $( ns.document ).width();
+		ns.height = $( ns.window ).height() || $( ns.document ).height();
+	};
+	$( ns.window ).resize( getSize );
+	getSize();
+
+	var ib = new ns.IB( ns );
+	ib.init( function () {
+		ib.start();
+	} );
+} )( this );

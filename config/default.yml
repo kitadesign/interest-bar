@@ -1,0 +1,7 @@
+debug: true
+root: :3000
+namespace: __interest_border__
+
+server:
+  host: play.circumflex.jp
+  port: 3000
