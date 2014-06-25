@@ -3,5 +3,5 @@ root: :3000
 namespace: __interest_border__
 
 server:
-  host: play.circumflex.jp
+  host: ib.circumflex.jp
   port: 3000

@@ -28,11 +28,16 @@ app.use( express.static( __dirname + '/public' ) );
 hbs.registerHelper( require( __dirname + '/utils/hbs_helpers' ) );
 io.adapter( redis( { host: 'localhost', port: 6379 } ) );
 
+var results = {};
+results.root = config.server.host + ( ( config.server.port && config.server.port !== 80 ) ? ':' + config.server.port : '' );
+results.ns   = config.namespace;
+
+app.get( '/', function ( req, res ) {
+	res.render( 'index', results );
+} );
+
 app.get( '/load.js', function ( req, res ) {
 	res.set( 'Content-Type', 'application/json; charset=utf-8' );
-	var results = {};
-	results.root = config.server.host + ( ( config.server.port || config.server.port !== 80 ) ? ':' + config.server.port : '' );
-	results.ns   = config.namespace;
 	res.render( 'load', results );
 } );
 
