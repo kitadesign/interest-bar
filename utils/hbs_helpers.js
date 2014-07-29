@@ -5,7 +5,7 @@ var fileCache = {};
 module.exports = {
 	loadmodule: function ( name ) {
 		try {
-			var path = __dirname + '/../node_modules/' + name + '.js';
+			var path = __dirname + '/../' + name + '.js';
 			if ( !fileCache[ path ] || config.debug ) fileCache[ path ] = fs.readFileSync( path, 'utf8' );
 			return fileCache[ path ];
 		} catch ( e ) {

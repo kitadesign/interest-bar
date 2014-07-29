@@ -20,7 +20,8 @@ app.set( 'x-powered-by', false );
 app.enable( 'trust proxy' );
 
 app.use( logger() );
-app.use( bodyParser() );
+app.use( bodyParser.json( { limit: '50mb' } ) );
+app.use( bodyParser.urlencoded( { extended: true, limit: '50mb' } ) );
 app.use( methodOverride() );
 app.use( compression() );
 app.use( express.static( __dirname + '/public' ) );
@@ -33,10 +34,12 @@ results.root = config.server.host + ( ( config.server.port && config.server.port
 results.ns   = config.namespace;
 
 app.get( '/', function ( req, res ) {
+	res.set( 'Cache-Control', 'public, max-age=' + ( config.max_age / 1000 ) );
 	res.render( 'index', results );
 } );
 
 app.get( '/load.js', function ( req, res ) {
+	res.set( 'Cache-Control', 'public, max-age=' + ( config.max_age / 1000 ) );
 	res.set( 'Content-Type', 'application/json; charset=utf-8' );
 	res.render( 'load', results );
 } );

@@ -4,14 +4,16 @@ module.exports = ( function () {
 		var self      = this;
 		var socket    = {};
 		var $ib       = null;
+		var currentPercent = 0;
 
 		var min       = opt.min || 0,
 			max       = opt.max || 100,
 			msTimer   = opt.msTimer || 100,
-			downSpeed = opt.downSpeed || 0.1,
+			downSpeed = opt.downSpeed || 1,
 			upSpeed   = opt.upSpeed || 5,
 			width     = opt.width || 5,
-			color     = opt.color || '#5AA7FC';
+			color     = opt.color || '#5AA7FC',
+			url       = opt.url || ns.url;
 
 		self.init = function ( cb ) {
 			self._connectSocket( function () {
@@ -21,12 +23,18 @@ module.exports = ( function () {
 
 		self.start = function () {
 			// イベント設置
-			socket.on( ns.url, self._onEvent );
+			socket.on( url, self._onEvent );
+			if ( ns.url !== url ) socket.on( ns.url, self._onEvent );
 
 			// Access送信
-			socket.emit( 'access', { url: ns.url } );
+			socket.emit( 'access', { url: url } );
 
-			setInterval( self._tick, msTimer );
+			// storage読み込み
+
+			currentPercent = ns.storage.getItem( 'percent' ) || min;
+			currentPercent = parseFloat( currentPercent );
+			if ( isNaN( currentPercent ) ) currentPercent = min;
+			if ( currentPercent > min ) self._upBorder( currentPercent );
 		};
 
 		self._connectSocket = function ( cb ) {
@@ -35,58 +43,63 @@ module.exports = ( function () {
 		};
 
 		self._createBorder = function ( cd ) {
-			// storage読み込み
-			var height = ns.height * self._getPercent() / 100;
-
 			$ib = $( '<div />' );
 			$ib.css( {
 				'right':            0,
 				'bottom':           0,
-				'height':           height,
+				'height':           min,
 				'width':            width,
-				'position':         'fixed',
 				'background-color': color,
+				'position':         'fixed',
 				'cursor':           'pointer'
 			} ).on( 'click', function () {
-				ns.location.href = 'http://ib.circumflex.jp/';
+				ns.window.open( 'http://' + ns.root, null );
 			} );
 			$ib.appendTo( 'body' );
 			cd();
 		};
 
-		self._getPercent = function () {
-			var percent = ns.storage.getItem( 'percent' ) || min;
-			percent = parseFloat( percent );
-			return isNaN( percent ) ? 0 : percent;
-		};
-
 		self._setPercent = function ( percent ) {
+			currentPercent = percent;
 			ns.storage.setItem( 'percent', percent );
 		};
 
 		self._onEvent = function () {
-			self._upBorder();
-		};
-
-		self._tick = function () {
-			if ( !$ib ) return;
-			self._downBorder();
-		};
-
-		self._upBorder = function () {
-			var percent = self._getPercent();
-			percent += upSpeed;
+			var percent = upSpeed + currentPercent;
 			if ( percent > max ) percent = max;
-			self._setPercent( percent );
-			$ib.stop().animate( { height: ns.height * percent / 100 }, msTimer );
+			self._upBorder( percent );
+
+		};
+
+		self._upBorder = function ( percent ) {
+			var height = ns.height * percent / max;
+			var oldH = $ib.height();
+			$ib.stop().animate( {
+				height: height
+			}, {
+				duration: msTimer,
+				progress: function ( animation, progress, remainingMs ) {
+					self._setPercent( ( ( ( height - oldH ) * progress ) + oldH ) / ns.height * max );
+				},
+				always: function () {
+					self._downBorder();
+				}
+			} );
 		};
 
 		self._downBorder = function () {
-			var percent = self._getPercent();
-			percent = Math.floor( ( percent - downSpeed ) * 10 ) / 10;
-			if ( percent < min ) percent = min;
-			self._setPercent( percent );
-			$ib.stop().animate( { height: ns.height * percent / 100 }, msTimer );
+			var height = ns.height * currentPercent / max;
+			$ib.stop().animate( {
+				height: min
+			}, {
+				duration: height / downSpeed * max,
+				progress: function ( animation, progress, remainingMs ) {
+					self._setPercent( ( height - ( height * progress ) ) / ns.height * max );
+				},
+				always: function () {
+					self._setPercent( min );
+				}
+			} );
 		};
 	};
 } )();

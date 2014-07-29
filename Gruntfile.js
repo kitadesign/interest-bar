@@ -20,6 +20,13 @@ module.exports = function ( grunt ) {
 					src: [ '**/*.js', '!libs/**/*', '!min/**/*' ],
 					dest: 'views/min/'
 				} ]
+			},
+			minify: {
+				files: {
+					'views/min/socket-io.min.js': [
+						'node_modules/socket.io-client/socket.io.js'
+					]
+				}
 			}
 		}
 

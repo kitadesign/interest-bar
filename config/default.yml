@@ -1,6 +1,7 @@
 debug: true
 root: :3000
 namespace: __interest_border__
+max_age: 31557600000
 
 server:
   host: ib.circumflex.jp
